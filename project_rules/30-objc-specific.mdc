@@ -1,0 +1,24 @@
+---
+description: Objective-C 模块专用规则
+globs:
+  - "**/*.m"
+  - "**/*.h"
+---
+
+# Objective-C 模块专用规则（强制）
+
+仅适用于历史遗留模块或必须使用 Objective-C 的部分
+
+## 布局
+- 所有 UIKit 布局 **必须使用 Masonry**
+- 禁止使用 Storyboard / Xib 做复杂页面
+
+## 图片加载
+- 图片加载 **必须使用 SDWebImage**
+- 禁止使用 UIImageView+AFNetworking 或其他旧库
+
+## 其他约束
+- 优先向 Swift 迁移，Objective-C 只做最小维护
+- 业务逻辑尽量放到独立的 Service / Manager 类
+- 禁止在 ViewController 中堆积大量代码
+- 推荐逐步使用 block / delegate 向 Combine / async 风格迁移（桥接层）

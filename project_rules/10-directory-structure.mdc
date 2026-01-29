@@ -1,0 +1,37 @@
+---
+description: 项目推荐目录结构
+---
+
+# 项目目录结构规范（强制）
+
+推荐结构（Feature-first + Clean 分层）：
+
+```
+
+/App
+/Modules
+/FeatureA
+/View               # SwiftUI Views 或 UIKit VC + 子 View
+/ViewModel
+/Model
+/Service            # 业务 Service
+/Repository         # 数据源抽象
+/Router / Coordinator
+/Preview            # SwiftUI Preview 文件（可选）
+/Core
+/Networking           # 网络层（Alamofire / URLSession 封装）
+/Storage              # Keychain / UserDefaults / CoreData 封装
+/Services             # 全局 Service（如 Auth、Logger）
+/Utils
+/Extensions
+/UIComponents           # 通用 UI 组件（Button、Card、LoadingView 等）
+/DesignSystem           # 颜色、字体、间距、图标等设计令牌
+/FlutterModules         # Flutter 模块（仅跨端业务）
+/Resources              # Assets、Strings、Localizable 等
+
+```
+
+原则：
+- 每个业务功能尽量独立成 Module
+- 共享代码统一放 Core / UIComponents / DesignSystem
+- 禁止把所有页面堆在同一个目录

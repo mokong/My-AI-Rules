@@ -1,0 +1,29 @@
+---
+description: Swift / SwiftUI 项目专用规则
+globs:
+  - "**/*.swift"
+  - "!**/*.m"
+  - "!**/*.h"
+---
+
+# Swift 项目专用规则（强制）
+
+## 布局
+- 所有 UIKit 布局 **必须使用 SnapKit**
+- 禁止使用 Storyboard / Xib 做复杂页面（仅限简单原型或设置页）
+- SwiftUI 项目优先使用原生 modifier 布局
+
+## 网络层
+- 网络请求 **必须使用 Alamofire**
+- 所有 API 调用必须封装在 Repository / Service 层
+- 禁止 ViewModel / View 直接使用 Alamofire 或 URLSession
+
+## 响应式编程
+- 异步数据流 **必须优先使用 Combine**
+- 禁止大量使用 closure / delegate 回调（除非第三方 SDK 强制）
+- ViewModel 中优先使用 @Published / @Observable（iOS 17+）
+- 强烈推荐 async/await + throws 替代旧 completion handler
+
+## 其他
+- 优先使用最新 Swift 特性（@Observable、NavigationStack、Observation 等）
+- SwiftUI 中 View 必须轻量，复杂逻辑全部放到 ViewModel

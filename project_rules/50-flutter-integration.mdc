@@ -1,0 +1,122 @@
+---
+description: Flutter 模块在现有 iOS 项目中的集成规则（强制）
+globs:
+  - "**/*.dart"
+  - "**/FlutterModules/**"
+  - "**/ios/**"  # 影响 Podfile、AppDelegate 等原生部分
+alwaysApply: false  # 只在 Flutter 相关文件或上下文触发，节省 token
+---
+
+# Flutter 模块集成规则（现有 iOS 项目）
+
+如果项目使用 Flutter 作为**跨平台业务模块**，必须严格遵守以下集成规范，以确保原生 iOS 部分稳定、可维护，且 Flutter 与原生边界清晰。
+
+## 1. 集成方式（强制）
+- **只使用 Flutter Module**（非完整 Flutter App）
+  - 创建方式：`flutter create -t module flutter_module_name`
+  - 放置位置：项目根目录下统一放 `/FlutterModules/FeatureName/`（或 `/FlutterModules/Shared/`）
+- **推荐集成方法**（按优先级）：
+  1. CocoaPods 自动集成（官方推荐，适用于大多数团队）
+     - 在 iOS Podfile 中添加：
+      ```
+       pod 'Flutter', :path => File.join('..', 'FlutterModules', 'your_flutter_module', '.ios', 'Flutter')
+       ```
+     - 运行 `pod install`
+  2. Xcode 手动添加 Flutter.framework（适用于不使用 CocoaPods 的项目）
+  3. 禁止直接将 Flutter 作为子项目嵌入（会导致构建复杂、维护困难）
+
+- AppDelegate / SceneDelegate 中初始化 FlutterEngine：
+- 使用共享的 FlutterEngine（单例或依赖注入）
+- 示例（Swift）：
+```swift
+// 在 AppDelegate 或 SceneDelegate
+lazy var flutterEngine = FlutterEngine(name: "my_flutter_engine")
+flutterEngine.run()
+```
+
+## 2. 模块边界与职责分离（强制）
+
+Flutter 只负责纯 UI + 跨平台业务逻辑
+Flutter 页面（Widget）不允许直接调用 iOS 原生 API（如相机、定位、Keychain）
+
+原生 iOS 负责：
+系统权限请求
+平台通道（MethodChannel）桥接
+推送、深链、生物识别等原生能力
+
+禁止：
+Flutter 直接 import iOS 原生框架（UIKit 等）
+原生 ViewController 直接持有 Flutter Widget 引用（反之亦然）
+Flutter 内部写平台特定代码（必须通过 platform channels 抽象）
+
+
+## 3. 通信机制（强制）
+
+只使用 Platform Channels（MethodChannel / EventChannel / Pigeon）
+优先 Pigeon（类型安全、代码生成，推荐 2025+ 项目）
+禁止使用旧的 BasicMessageChannel 或不安全的 JSON 序列化
+
+通道命名规范：
+com.yourcompany.app/feature_name/channel_name
+
+双向通信必须处理：
+错误统一用 FlutterError / NSError
+异步结果必须有 completion / callback
+支持 cancellation（通过 cancellable operation）
+
+
+## 4. 目录结构（强制）
+
+/FlutterModules
+  /FeatureName
+    ├── lib/
+    │   ├── main.dart               # 仅用于调试，实际不使用
+    │   ├── src/
+    │   │   ├── features/           # 业务 feature
+    │   │   ├── core/               # 共享状态管理、模型、utils
+    │   │   ├── widgets/            # 可复用组件
+    │   │   └── presentation/       # 页面级 Widget
+    ├── .ios/
+    └── pubspec.yaml
+
+## 5. 状态管理与架构（强制）
+
+推荐状态管理：Riverpod（或 Bloc / Provider，根据团队习惯）
+禁止使用 setState 在复杂页面
+优先 immutable 数据 + freezed / json_serializable
+
+架构偏好：Clean Architecture 或 Feature-first MVVM
+数据层（Repository） → 领域层（UseCase / Model） → 呈现层（ViewModel / Widget）
+
+
+## 6. 性能与最佳实践（强制）
+
+所有 Widget 尽可能使用 const 构造函数
+避免在 build 中执行昂贵操作
+使用 ListView.builder / GridView.builder 懒加载
+图片 / 资源通过原生侧加载（或 flutter assets）
+启用 flutter_lints + custom rules（避免全局状态、内存泄漏等）
+
+## 7. 构建与调试规则
+
+Flutter 构建必须集成到 Xcode build phase（自动触发 flutter build）
+调试时使用 flutter attach 或 VS Code / Android Studio 热重载
+Release 构建必须 --obfuscate --split-debug-info（提升安全性）
+禁止在生产环境中保留 debugPrint / print
+
+## 8. 禁止行为（强制）
+
+Flutter 模块直接访问 iOS 文件系统 / Keychain
+在 Flutter 中硬编码 iOS 路径 / bundle ID
+使用 Flutter 做启动页 / 核心系统页面（建议原生实现）
+跨层直接调用（Flutter 调用原生私有方法，或反之）
+未处理平台通道异常
+
+优先级说明：
+
+本规则优先级高于 User Rules 中的通用风格，但低于格式保护（缩进、空格、空行、文件头）。
+与 Swift 部分（SnapKit + Alamofire + Combine）互斥：Flutter 模块内禁止使用这些库。
+如果项目中 Flutter 模块占比 >30%，建议逐步评估是否迁移到纯 Flutter App。
+
+违反以上规则时，Cursor 应在回复中着重提醒：
+【Flutter 集成违规】请检查是否违反边界分离 / 平台通道规范。

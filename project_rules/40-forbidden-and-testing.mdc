@@ -1,0 +1,22 @@
+---
+description: 项目全局禁止事项与可测试性要求
+alwaysApply: true
+---
+
+# 禁止行为（强制）
+
+- 巨型类（单个文件 > 400 行视为巨型）
+- 在 View / ViewController 中写业务逻辑、网络请求、数据处理
+- force unwrap (!) / as! / Any / id 滥用
+- 模块间循环依赖
+- 未处理错误的网络调用 / 异步操作
+- 重复实现已有组件
+- 滥用 Singleton（优先依赖注入）
+- 直接跨层调用私有实现
+
+# 可测试性要求
+
+- ViewModel 必须可独立单元测试（不依赖 UI）
+- Service / Repository 必须支持 mock / stub
+- 核心业务逻辑必须可测试
+- 网络层必须有 mock 支持（用于单元测试 / UI 测试）

@@ -1,0 +1,26 @@
+---
+description: 项目全局架构原则 - 所有文件都适用
+alwaysApply: true
+---
+
+# 项目全局架构原则（强制）
+
+必须严格遵守 MVVM + 模块化 + 职责分离
+
+- View / UIViewController / SwiftUI View：只负责 UI 展示 + 用户交互 + 数据绑定
+  - 禁止包含业务逻辑、网络请求、数据持久化、复杂计算
+
+- ViewModel / Presenter：负责页面状态管理、业务逻辑、数据转换、异步处理
+  - 禁止持有任何 UIKit/SwiftUI/Flutter 视图引用
+
+- Service / Repository / UseCase：负责网络、缓存、数据库读写、第三方 SDK 交互
+  - 必须支持 mock / 单元测试
+
+- Model：纯数据结构 + Codable / Equatable / Hashable / Identifiable
+  - 禁止包含 UI 或业务逻辑
+
+所有模块必须：
+- 单一职责
+- 依赖注入优先（init 参数注入）
+- 禁止循环依赖
+- 模块间通过协议或明确定义的接口通信
